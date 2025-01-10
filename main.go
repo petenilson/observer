@@ -16,22 +16,22 @@ type Event struct {
 	EventType EventType
 }
 
-type Notifier interface {
-	Notifiy(c context.Context, e Event, p *Publisher)
+type Reciever interface {
+	Recieve(c context.Context, e Event, p *Publisher)
 }
 
 // Publisher notifies all listners (notifiers) of an event.
 type Publisher struct {
-	Notifiers map[EventType][]Notifier
+	Notifiers map[EventType][]Reciever
 }
 
-func (p *Publisher) register(n Notifier, t EventType) {
+func (p *Publisher) register(n Reciever, t EventType) {
 	p.Notifiers[t] = append(p.Notifiers[t], n)
 }
 
 func (p *Publisher) Publish(ctx context.Context, e Event) {
 	for _, v := range p.Notifiers[e.EventType] {
-		v.Notifiy(ctx, e, p)
+		v.Recieve(ctx, e, p)
 	}
 }
 
@@ -39,8 +39,8 @@ func (p *Publisher) Publish(ctx context.Context, e Event) {
 type WelcomeGifter struct {
 }
 
-// Notifiy implements Notifier
-func (s *WelcomeGifter) Notifiy(ctx context.Context, e Event, p *Publisher) {
+// Recieve implements Reciever
+func (s *WelcomeGifter) Recieve(ctx context.Context, e Event, p *Publisher) {
 	fmt.Println("WelcomeGifter: Sending Gift")
 
 }
@@ -49,8 +49,8 @@ func (s *WelcomeGifter) Notifiy(ctx context.Context, e Event, p *Publisher) {
 type WelcomeEmailer struct {
 }
 
-// Notifiy implements Notifier
-func (s *WelcomeEmailer) Notifiy(ctx context.Context, e Event, p *Publisher) {
+// Recieve implements Reciever
+func (s *WelcomeEmailer) Recieve(ctx context.Context, e Event, p *Publisher) {
 	fmt.Println("WelcomeEmailer: Sending Email")
 }
 
@@ -58,8 +58,8 @@ func (s *WelcomeEmailer) Notifiy(ctx context.Context, e Event, p *Publisher) {
 type ProtomotionUnsubscriber struct {
 }
 
-// Notifiy implements Notifier
-func (s *ProtomotionUnsubscriber) Notifiy(ctx context.Context, e Event, p *Publisher) {
+// Recieve implements Reciever
+func (s *ProtomotionUnsubscriber) Recieve(ctx context.Context, e Event, p *Publisher) {
 	fmt.Println("ProtomotionUnsubscriber: Removing User From Mailing List")
 }
 
@@ -70,7 +70,7 @@ func main() {
 	unsubr := ProtomotionUnsubscriber{}
 
 	publisher := Publisher{
-		Notifiers: map[EventType][]Notifier{},
+		Notifiers: map[EventType][]Reciever{},
 	}
 
 	// UserSignUp Events
