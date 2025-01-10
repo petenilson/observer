@@ -1,3 +1,6 @@
+/*
+A toy example demonstrating the observer pattern being used.
+*/
 package main
 
 import (
@@ -8,12 +11,13 @@ import (
 type EventType int
 
 const (
-	UserSignUp EventType = iota
-	UserUnsubscribe
+	MotionDetectedEvent EventType = iota
+	DoorOpenEvent
 )
 
 type Event struct {
 	EventType EventType
+	Location  string
 }
 
 type Reciever interface {
@@ -35,51 +39,74 @@ func (p *Publisher) Publish(ctx context.Context, e Event) {
 	}
 }
 
-// WelcomeGifter sends out a small gift to new customers
-type WelcomeGifter struct {
+type ControllerLights struct {
 }
 
 // Recieve implements Reciever
-func (s *WelcomeGifter) Recieve(ctx context.Context, e Event, p *Publisher) {
-	fmt.Println("WelcomeGifter: Sending Gift")
-
+func (s *ControllerLights) Recieve(ctx context.Context, e Event, p *Publisher) {
+	switch e.EventType {
+	case MotionDetectedEvent:
+		fmt.Printf("ControllerLights: Room: %s: Motion Detected\n", e.Location)
+		fmt.Printf("ControllerLights: Room: %s: Turning On Lights\n", e.Location)
+	default:
+		panic("ControllerLights: Event Type Not Supported")
+	}
 }
 
-// WelcomeEmailer sends out emails to New Signups
-type WelcomeEmailer struct {
-}
-
-// Recieve implements Reciever
-func (s *WelcomeEmailer) Recieve(ctx context.Context, e Event, p *Publisher) {
-	fmt.Println("WelcomeEmailer: Sending Email")
-}
-
-// ProtomotionUnsubscriber will remove unregister the user from promotional emails
-type ProtomotionUnsubscriber struct {
+type ControllerSecurityCamera struct {
 }
 
 // Recieve implements Reciever
-func (s *ProtomotionUnsubscriber) Recieve(ctx context.Context, e Event, p *Publisher) {
-	fmt.Println("ProtomotionUnsubscriber: Removing User From Mailing List")
+func (s *ControllerSecurityCamera) Recieve(ctx context.Context, e Event, p *Publisher) {
+	switch e.EventType {
+	case MotionDetectedEvent:
+		fmt.Printf("ControllerSecurityCamera: Room: %s: Motion Detected\n", e.Location)
+		fmt.Printf("ControllerSecurityCamera: Room: %s: Recording For 30s\n", e.Location)
+	default:
+		panic("ControllerSecurityCamera: Event Type Not Supported")
+	}
+}
+
+type AlerterEmail struct {
+}
+
+// Recieve implements Reciever
+func (s *AlerterEmail) Recieve(ctx context.Context, e Event, p *Publisher) {
+	switch e.EventType {
+	case DoorOpenEvent:
+		switch e.Location {
+		case "Garage":
+			fmt.Printf("AlerterEmail: Room: %s: Door Opened\n", e.Location)
+			fmt.Printf("AlerterEmail: Room: %s: Sending Email\n", e.Location)
+		}
+	default:
+		panic("AlerterEmail: Event Type Not Supported")
+	}
 }
 
 func main() {
 
-	mailer := WelcomeEmailer{}
-	gifter := WelcomeGifter{}
-	unsubr := ProtomotionUnsubscriber{}
+	camera := ControllerSecurityCamera{}
+	lights := ControllerLights{}
+	sender := AlerterEmail{}
 
 	publisher := Publisher{
 		Notifiers: map[EventType][]Reciever{},
 	}
 
 	// UserSignUp Events
-	publisher.register(&mailer, UserSignUp)
-	publisher.register(&gifter, UserSignUp)
+	publisher.register(&camera, MotionDetectedEvent)
+	publisher.register(&lights, MotionDetectedEvent)
 
 	// UserUnsubscribe Events
-	publisher.register(&unsubr, UserUnsubscribe)
+	publisher.register(&sender, DoorOpenEvent)
 
-	publisher.Publish(context.TODO(), Event{EventType: UserSignUp})
-	publisher.Publish(context.TODO(), Event{EventType: UserUnsubscribe})
+	publisher.Publish(context.TODO(), Event{
+		EventType: MotionDetectedEvent,
+		Location:  "Living Room",
+	})
+	publisher.Publish(context.TODO(), Event{
+		EventType: DoorOpenEvent,
+		Location:  "Garage",
+	})
 }
