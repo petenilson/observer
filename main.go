@@ -26,15 +26,15 @@ type Reciever interface {
 
 // Publisher notifies all listners (notifiers) of an event.
 type Publisher struct {
-	Notifiers map[EventType][]Reciever
+	Recievers map[EventType][]Reciever
 }
 
 func (p *Publisher) register(n Reciever, t EventType) {
-	p.Notifiers[t] = append(p.Notifiers[t], n)
+	p.Recievers[t] = append(p.Recievers[t], n)
 }
 
 func (p *Publisher) Publish(ctx context.Context, e Event) {
-	for _, v := range p.Notifiers[e.EventType] {
+	for _, v := range p.Recievers[e.EventType] {
 		v.Recieve(ctx, e, p)
 	}
 }
@@ -91,7 +91,7 @@ func main() {
 	sender := AlerterEmail{}
 
 	publisher := Publisher{
-		Notifiers: map[EventType][]Reciever{},
+		Recievers: map[EventType][]Reciever{},
 	}
 
 	// UserSignUp Events
