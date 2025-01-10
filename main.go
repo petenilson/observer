@@ -1,5 +1,5 @@
 /*
-A toy example demonstrating the observer pattern being used.
+A toy example demonstrating the observer pattern
 */
 package main
 
