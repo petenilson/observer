@@ -8,11 +8,11 @@ import (
 	"fmt"
 )
 
-type EventType int
+type EventType string
 
 const (
-	MotionDetectedEvent EventType = iota
-	DoorOpenEvent
+	MotionDetectedEvent EventType = "MotionDetectedEvent"
+	DoorOpenEvent       EventType = "DoorOpenEvent"
 )
 
 type Event struct {
@@ -58,7 +58,7 @@ func (s *ControllerLights) Recieve(ctx context.Context, e Event, p *Publisher) e
 		fmt.Printf("ControllerLights: Room: %s: Motion Detected\n", e.Location)
 		fmt.Printf("ControllerLights: Room: %s: Turning On Lights\n", e.Location)
 	default:
-		return fmt.Errorf("%s: event type not supported", s.name)
+		return fmt.Errorf("%s: event type %s not supported", s.name, e.EventType)
 	}
 	return nil
 }
@@ -74,7 +74,7 @@ func (s *ControllerSecurityCamera) Recieve(ctx context.Context, e Event, p *Publ
 		fmt.Printf("ControllerSecurityCamera: Room: %s: Motion Detected\n", e.Location)
 		fmt.Printf("ControllerSecurityCamera: Room: %s: Recording For 30s\n", e.Location)
 	default:
-		return fmt.Errorf("%s: event type not supported", s.name)
+		return fmt.Errorf("%s: event type %s not supported", s.name, e.EventType)
 	}
 	return nil
 }
@@ -93,7 +93,7 @@ func (s *AlerterEmail) Recieve(ctx context.Context, e Event, p *Publisher) error
 			fmt.Printf("AlerterEmail: Room: %s: Sending Email\n", e.Location)
 		}
 	default:
-		return fmt.Errorf("%s: event type not supported", s.name)
+		return fmt.Errorf("%s: event type %s not supported", s.name, e.EventType)
 	}
 	return nil
 }
@@ -103,9 +103,7 @@ func main() {
 	lights := &ControllerLights{name: "Lights"}
 	sender := &AlerterEmail{name: "Email Alerter"}
 
-	publisher := Publisher{
-		Recievers: map[EventType][]Reciever{},
-	}
+	publisher := NewPublisher()
 
 	// MotionDetectedEvent Events
 	publisher.Register(camera, MotionDetectedEvent)
