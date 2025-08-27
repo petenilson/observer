@@ -1,8 +1,8 @@
-# Observer
+# Playing with design patterns: Observer Pattern
 
 A simple demonstration of the observer design pattern implemented in Go.
 
-*Receivers*
+_Receivers_
 
 ```Go
 type Reciever interface {
@@ -13,12 +13,22 @@ type Reciever interface {
 Receivers react to Events. They should be stateless and have all the information they need
 to react to the Event passed as arguments.
 
-*Publisher*
+_Publisher_
 
 Publishers alert recievers of an event. A publisher will keep a registery of recievers
 that are interested in a particuluar event.
 
+```Go
+func (p *Publisher) Publish(ctx context.Context, e Event) {
+	for _, v := range p.Recievers[e.EventType] {
+		if err := v.Recieve(ctx, e, p); err != nil {
+			fmt.Println(err)
+		}
+	}
+}
 ```
+
+```Bash
 go run main.go
 
 ControllerSecurityCamera: Room: Living Room: Motion Detected
